@@ -1,0 +1,46 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}厂区列表{% endblock %}
+
+{% block content %}
+<h2>厂区列表</h2>
+<div style="margin: 20px 0;">
+    <a href="{% url 'factory_area:add' %}" class="btn btn-success">新增厂区</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>厂区编码</th>
+            <th>厂区名称</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for area in areas %}
+        <tr>
+            <td>{{ area.factory_area_code }}</td>
+            <td>{{ area.name }}</td>
+            <td>{% if area.is_active %}启用{% else %}禁用{% endif %}</td>
+            <td>{{ area.created_at|date:"Y-m-d H:i" }}</td>
+            <!-- factory_area/templates/factory_area/list.html -->
+            <td>
+                <a href="{% url 'factory_area:edit' area.pk %}" class="btn">编辑</a>
+                {% if area.is_active %}
+                <a href="{% url 'factory_area:disable' area.pk %}" class="btn btn-warning"
+                    onclick="return confirm('确定要禁用 {{ area.name }} 吗？')">禁用</a>
+                {% else %}
+                <a href="{% url 'factory_area:enable' area.pk %}" class="btn btn-success"
+                    onclick="return confirm('确定要启用 {{ area.name }} 吗？')">启用</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center;">暂无厂区数据</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}{% if equipment_type %}编辑设备类型{% else %}新增设备类型{% endif %}{% endblock %}
+
+{% block content %}
+<h2>{% if equipment_type %}编辑设备类型{% else %}新增设备类型{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- 左侧：基本信息 -->
+        <div>
+            <h3>基本信息</h3>
+            
+            <div class="form-group">
+                <label for="equipment_type_id">类型ID *</label>
+                <input type="text" id="equipment_type_id" name="equipment_type_id" 
+                       value="{{ equipment_type.equipment_type_id|default:'' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">设备名称 *</label>
+                <input type="text" id="name" name="name" 
+                       value="{{ equipment_type.name|default:'' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="device_category">设备类别 *</label>
+                <select id="device_category" name="device_category" required>
+                    <option value="">请选择</option>
+                    {% for value, label in device_category_choices %}
+                    {% if equipment_type and equipment_type.device_category == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="brand">品牌</label>
+                <input type="text" id="brand" name="brand" 
+                       value="{{ equipment_type.brand|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="model">型号</label>
+                <input type="text" id="model" name="model" 
+                       value="{{ equipment_type.model|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="calibration_method">送校方式</label>
+                <select id="calibration_method" name="calibration_method">
+                    {% for value, label in calibration_method_choices %}
+                    {% if equipment_type and equipment_type.calibration_method == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <!-- 右侧：维保/校正规则和成本 -->
+        <div>
+            <h3>维保/校正规则</h3>
+            
+            <div style="display: flex; gap: 20px;">
+                <div class="checkbox">
+                    {% if not equipment_type or equipment_type.maintenance_required %}
+                    <input type="checkbox" id="maintenance_required" name="maintenance_required" checked>
+                    {% else %}
+                    <input type="checkbox" id="maintenance_required" name="maintenance_required">
+                    {% endif %}
+                    <label for="maintenance_required">需要保养</label>
+                </div>
+                
+                <div class="checkbox">
+                    {% if equipment_type and equipment_type.calibration_required %}
+                    <input type="checkbox" id="calibration_required" name="calibration_required" checked>
+                    {% else %}
+                    <input type="checkbox" id="calibration_required" name="calibration_required">
+                    {% endif %}
+                    <label for="calibration_required">需要校正</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="maintenance_interval_days">保养周期(天)</label>
+                <input type="number" id="maintenance_interval_days" name="maintenance_interval_days" 
+                       value="{{ equipment_type.maintenance_interval_days|default:180 }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="calibration_interval_days">校正周期(天)</label>
+                <input type="number" id="calibration_interval_days" name="calibration_interval_days" 
+                       value="{{ equipment_type.calibration_interval_days|default:365 }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="maintenance_duration_min">保养预计工时(分钟)</label>
+                <input type="number" id="maintenance_duration_min" name="maintenance_duration_min" 
+                       value="{{ equipment_type.maintenance_duration_min|default:60 }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="calibration_duration_min">校正预计工时(分钟)</label>
+                <input type="number" id="calibration_duration_min" name="calibration_duration_min" 
+                       value="{{ equipment_type.calibration_duration_min|default:120 }}" min="1">
+            </div>
+            
+            <h3>成本估算</h3>
+            
+            <div class="form-group">
+                <label for="estimated_unit_cost">预估单价</label>
+                <input type="number" id="estimated_unit_cost" name="estimated_unit_cost" 
+                       value="{{ equipment_type.estimated_unit_cost|default:'' }}" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="currency">币种</label>
+                <input type="text" id="currency" name="currency" 
+                       value="{{ equipment_type.currency|default:'CNY' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="cost_source">成本来源</label>
+                <input type="text" id="cost_source" name="cost_source" 
+                       value="{{ equipment_type.cost_source|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="cost_updated_at">成本更新时间</label>
+                <input type="date" id="cost_updated_at" name="cost_updated_at" 
+                       value="{{ equipment_type.cost_updated_at|date:'Y-m-d'|default:'' }}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group checkbox">
+        {% if not equipment_type or equipment_type.is_active %}
+        <input type="checkbox" id="is_active" name="is_active" checked>
+        {% else %}
+        <input type="checkbox" id="is_active" name="is_active">
+        {% endif %}
+        <label for="is_active">启用</label>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url 'factory_area:equipment_type_list' %}" class="btn">取消</a>
+    </div>
+</form>
+
+<style>
+.form-group {
+    margin: 10px 0;
+}
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+.checkbox {
+    display: flex;
+    align-items: center;
+}
+.checkbox input {
+    margin-right: 8px;
+}
+select, input[type="text"], input[type="number"], input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}{% if floor %}编辑楼层{% else %}新增楼层{% endif %}{% endblock %}
+
+{% block content %}
+<h2>{% if floor %}编辑楼层{% else %}新增楼层{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="floor_code">楼层编码 *</label>
+        <input type="text" id="floor_code" name="floor_code" 
+               value="{{ floor.floor_code|default:'' }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="name">楼层名称 *</label>
+        <input type="text" id="name" name="name" 
+               value="{{ floor.name|default:'' }}" required>
+    </div>
+    
+    <div class="form-group checkbox">
+        {% if not floor or floor.is_active %}
+        <input type="checkbox" id="is_active" name="is_active" checked>
+        {% else %}
+        <input type="checkbox" id="is_active" name="is_active">
+        {% endif %}
+        <label for="is_active">启用</label>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url 'factory_area:floor_list' %}" class="btn">取消</a>
+    </div>
+</form>
+{% endblock %}

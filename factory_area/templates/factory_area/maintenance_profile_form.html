@@ -1,0 +1,182 @@
+{% extends 'factory_area/base.html' %}
+
+{% block title %}编辑设备纳管配置{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">编辑设备纳管配置</h2>
+
+            <!-- 设备信息卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">设备信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>PPID：</strong>{{ device.ppid }}</p>
+                            <p><strong>设备名称：</strong>{{ device.get_device_display_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>设备类型：</strong>{{ device.equipment_type.name }}</p>
+                            <p><strong>运行状态：</strong>{{ device.get_operational_state_display_name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设备类型默认配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">设备类型默认配置</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>需要保养：</strong>{{ device.equipment_type.maintenance_required|yesno:"是,否" }}</p>
+                            <p><strong>需要校正：</strong>{{ device.equipment_type.calibration_required|yesno:"是,否" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>保养周期：</strong>{{ device.equipment_type.maintenance_interval_days }}天</p>
+                            <p><strong>校正周期：</strong>{{ device.equipment_type.calibration_interval_days }}天</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>保养工时：</strong>{{ device.equipment_type.maintenance_duration_min }}分钟</p>
+                            <p><strong>校正工时：</strong>{{ device.equipment_type.calibration_duration_min }}分钟</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纳管配置表单 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">纳管配置</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- 纳管开关 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="enable_maintenance"
+                                           id="enable_maintenance" {% if profile.enable_maintenance %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_maintenance">
+                                        <strong>纳入维保体系</strong>
+                                        <span class="text-muted">(关闭后将不生成任何维保/校正任务)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="use_type_defaults"
+                                           id="use_type_defaults" {% if profile.use_type_defaults %}checked{% endif %}>
+                                    <label class="form-check-label" for="use_type_defaults">
+                                        <strong>使用类型默认值</strong>
+                                        <span class="text-muted">(开启后将从设备类型继承配置)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- 单台覆盖配置 -->
+                        <div id="override-config" {% if profile.use_type_defaults %}style="display:none;"{% endif %}>
+                            <h6 class="mb-3">单台覆盖配置（仅在不使用类型默认值时生效）</h6>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="maintenance_required"
+                                               id="maintenance_required" {% if not profile.use_type_defaults and profile.maintenance_required %}checked{% endif %}>
+                                        <label class="form-check-label" for="maintenance_required">
+                                            需要保养
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="calibration_required"
+                                               id="calibration_required" {% if not profile.use_type_defaults and profile.calibration_required %}checked{% endif %}>
+                                        <label class="form-check-label" for="calibration_required">
+                                            需要校正
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="maintenance_interval_days" class="form-label">保养周期(天)</label>
+                                    <input type="number" class="form-control" name="maintenance_interval_days"
+                                           id="maintenance_interval_days" value="{{ profile.maintenance_interval_days }}" min="1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="calibration_interval_days" class="form-label">校正周期(天)</label>
+                                    <input type="number" class="form-control" name="calibration_interval_days"
+                                           id="calibration_interval_days" value="{{ profile.calibration_interval_days }}" min="1">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="maintenance_duration_min" class="form-label">保养预计工时(分钟)</label>
+                                    <input type="number" class="form-control" name="maintenance_duration_min"
+                                           id="maintenance_duration_min" value="{{ profile.maintenance_duration_min }}" min="1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="calibration_duration_min" class="form-label">校正预计工时(分钟)</label>
+                                    <input type="number" class="form-control" name="calibration_duration_min"
+                                           id="calibration_duration_min" value="{{ profile.calibration_duration_min }}" min="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- 状态 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="status"
+                                           id="status" {% if profile.status %}checked{% endif %}>
+                                    <label class="form-check-label" for="status">
+                                        <strong>启用状态</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> 保存
+                            </button>
+                            <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> 取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 根据是否使用类型默认值控制显示/隐藏单台覆盖配置
+document.getElementById('use_type_defaults').addEventListener('change', function() {
+    const overrideConfig = document.getElementById('override-config');
+    if (this.checked) {
+        overrideConfig.style.display = 'none';
+    } else {
+        overrideConfig.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

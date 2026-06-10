@@ -1,0 +1,65 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}{% if line %}编辑线体{% else %}新增线体{% endif %}{% endblock %}
+
+{% block content %}
+<h2>{% if line %}编辑线体{% else %}新增线体{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <!-- <div class="form-group">
+        <label for="line_code">线体编码 *</label>
+        <input type="text" id="line_code" name="line_code" value="{{ line.line_code|default:'' }}" required>
+    </div> -->
+
+<div class="form-group">
+    <label for="line_name">线体名称 *</label>
+    <input type="text" id="line_name" name="line_name" 
+           value="{{ line.line_name|default:'' }}" required>
+</div>
+
+    <div class="form-group">
+        <label for="factory_area">所属厂区 *</label>
+        <select id="factory_area" name="factory_area" required>
+            <option value="">请选择厂区</option>
+            {% for area in factory_areas %}
+            {% if line and line.factory_area.id == area.id %}
+            <option value="{{ area.id }}" selected>{{ area.name }} ({{ area.factory_area_code }})</option>
+            {% else %}
+            <option value="{{ area.id }}">{{ area.name }} ({{ area.factory_area_code }})</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="floor">所在楼层</label>
+        <select id="floor" name="floor">
+            <option value="">请选择楼层</option>
+            {% for floor in floors %}
+            {% if line and line.floor and line.floor.id == floor.id %}
+            <option value="{{ floor.id }}" selected>{{ floor.name }} ({{ floor.floor_code }})</option>
+            {% else %}
+            <option value="{{ floor.id }}">{{ floor.name }} ({{ floor.floor_code }})</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="owner_person_id">责任人ID *</label>
+        <input type="text" id="owner_person_id" name="owner_person_id" value="{{ line.owner_person_id|default:'' }}"
+            required>
+    </div>
+
+    <div class="form-group checkbox">
+        <input type="checkbox" id="is_active" name="is_active" {% if not line or line.is_active %}checked{% endif %}>
+        <label for="is_active">启用</label>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url 'factory_area:line_list' %}" class="btn">取消</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}{% if area %}编辑厂区{% else %}新增厂区{% endif %}{% endblock %}
+
+{% block content %}
+<h2>{% if area %}编辑厂区{% else %}新增厂区{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="factory_area_code">厂区编码 *</label>
+        <input type="text" id="factory_area_code" name="factory_area_code"
+            value="{{ area.factory_area_code|default:'' }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="name">厂区名称 *</label>
+        <input type="text" id="name" name="name" value="{{ area.name|default:'' }}" required>
+    </div>
+
+    <div class="form-group checkbox">
+        <input type="checkbox" id="is_active" name="is_active" {% if not area or area.is_active %}checked{% endif %}>
+        <label for="is_active">启用</label>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url 'factory_area:list' %}" class="btn">取消</a>
+    </div>
+</form>
+{% endblock %}

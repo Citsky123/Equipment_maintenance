@@ -1,0 +1,59 @@
+{% extends 'factory_area/base.html' %}
+
+{% block title %}批量恢复继承模式{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">批量恢复继承模式</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="equipment_type_id" class="form-label">选择设备类型</label>
+                            <select name="equipment_type_id" id="equipment_type_id" class="form-select" required>
+                                <option value="">请选择设备类型...</option>
+                                {% for et in equipment_types %}
+                                <option value="{{ et.id }}">
+                                    {{ et.equipment_type_id }} - {{ et.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                将该设备类型下所有设备的纳管配置恢复为继承模式
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="card bg-warning bg-opacity-10">
+                                <div class="card-body">
+                                    <h6 class="card-title">⚠️ 批量恢复规则</h6>
+                                    <ul class="mb-0">
+                                        <li>将该类型下所有设备的纳管配置恢复为继承模式（use_type_defaults=true）</li>
+                                        <li>单台覆盖的配置值将被清空，后续将使用设备类型的默认值</li>
+                                        <li>此操作不可逆，请谨慎操作</li>
+                                        <li>纳管开关（enable_maintenance）和启用状态（status）不会改变</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-arrow-counterclockwise"></i> 批量恢复继承
+                            </button>
+                            <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> 取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

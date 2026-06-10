@@ -1,0 +1,173 @@
+{% extends 'factory_area/base.html' %}
+
+{% block title %}设备纳管配置列表{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">设备纳管配置列表</h2>
+
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">总设备数</h5>
+                            <h2 class="display-4">{{ total_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">已纳管</h5>
+                            <h2 class="display-4">{{ enabled_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">未纳管</h5>
+                            <h2 class="display-4">{{ disabled_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">单台覆盖</h5>
+                            <h2 class="display-4">{{ override_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选和操作栏 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">纳管状态</label>
+                            <select name="enable_maintenance" class="form-select">
+                                <option value="">全部</option>
+                                <option value="true" {% if request.GET.enable_maintenance == 'true' %}selected{% endif %}>已纳管</option>
+                                <option value="false" {% if request.GET.enable_maintenance == 'false' %}selected{% endif %}>未纳管</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">配置模式</label>
+                            <select name="use_type_defaults" class="form-select">
+                                <option value="">全部</option>
+                                <option value="true" {% if request.GET.use_type_defaults == 'true' %}selected{% endif %}>继承类型</option>
+                                <option value="false" {% if request.GET.use_type_defaults == 'false' %}selected{% endif %}>单台覆盖</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">设备类别</label>
+                            <select name="device_category" class="form-select">
+                                <option value="">全部</option>
+                                {% for choice in device_category_choices %}
+                                <option value="{{ choice.0 }}" {% if request.GET.device_category == choice.0 %}selected{% endif %}>
+                                    {{ choice.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">筛选</button>
+                            <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-secondary">重置</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="mb-3">
+                <a href="{% url 'factory_area:maintenance_profile_batch_create' %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> 批量创建配置
+                </a>
+                <a href="{% url 'factory_area:maintenance_profile_batch_reset' %}" class="btn btn-warning">
+                    <i class="bi bi-arrow-counterclockwise"></i> 批量恢复继承
+                </a>
+            </div>
+
+            <!-- 配置列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>设备PPID</th>
+                                    <th>设备名称</th>
+                                    <th>设备类型</th>
+                                    <th>纳管状态</th>
+                                    <th>配置模式</th>
+                                    <th>需要保养</th>
+                                    <th>需要校正</th>
+                                    <th>保养周期</th>
+                                    <th>校正周期</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for profile in profiles %}
+                                <tr>
+                                    <td>{{ profile.device.ppid }}</td>
+                                    <td>{{ profile.device.get_device_display_name }}</td>
+                                    <td>{{ profile.device.equipment_type.name }}</td>
+                                    <td>
+                                        {% if profile.enable_maintenance %}
+                                        <span class="badge bg-success">已纳管</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">未纳管</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if profile.use_type_defaults %}
+                                        <span class="badge bg-info">继承</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">覆盖</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if profile.get_maintenance_required %}
+                                        <span class="text-success">是</span>
+                                        {% else %}
+                                        <span class="text-muted">否</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if profile.get_calibration_required %}
+                                        <span class="text-success">是</span>
+                                        {% else %}
+                                        <span class="text-muted">否</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ profile.get_maintenance_interval }}天</td>
+                                    <td>{{ profile.get_calibration_interval }}天</td>
+                                    <td>{{ profile.last_updated_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'factory_area:maintenance_profile_edit' profile.device.id %}"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i> 编辑
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted">暂无数据</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

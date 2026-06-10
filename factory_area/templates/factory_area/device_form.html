@@ -1,0 +1,253 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}{% if device %}编辑设备{% else %}新增设备{% endif %}{% endblock %}
+
+{% block content %}
+<h2>{% if device %}编辑设备{% else %}新增设备{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- 左侧：基本信息 -->
+        <div>
+            <h3>基本信息</h3>
+            
+            <div class="form-group">
+                <label for="ppid">PPID *</label>
+                <input type="text" id="ppid" name="ppid" 
+                       value="{{ device.ppid|default:'' }}" required>
+                <small style="color: #666;">每台设备的唯一标识</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="device_name">设备名称</label>
+                <input type="text" id="device_name" name="device_name" 
+                       value="{{ device.device_name|default:'' }}">
+                <small style="color: #666;">如不填写，将自动生成</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="device_code">设备编码</label>
+                <input type="text" id="device_code" name="device_code" 
+                       value="{{ device.device_code|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="asset_tag">固定资产编号</label>
+                <input type="text" id="asset_tag" name="asset_tag" 
+                       value="{{ device.asset_tag|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="equipment_type">设备类别 *</label>
+                <select id="equipment_type" name="equipment_type" required>
+                    <option value="">请选择设备类别</option>
+                    {% for eq_type in equipment_types %}
+                    {% if device and device.equipment_type.id == eq_type.id %}
+                    <option value="{{ eq_type.id }}" selected>{{ eq_type.get_category_display_name }}</option>
+                    {% else %}
+                    <option value="{{ eq_type.id }}">{{ eq_type.get_category_display_name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <!-- 右侧：责任人/RFID信息 -->
+        <div>
+            <h3>责任人/RFID信息</h3>
+            
+            <div class="form-group">
+                <label for="department_name">归属部门/团队</label>
+                <input type="text" id="department_name" name="department_name" 
+                       value="{{ device.department_name|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="keeper">保管责任人</label>
+                <input type="text" id="keeper" name="keeper" 
+                       value="{{ device.keeper|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="rfid_tag">RFID标签</label>
+                <input type="text" id="rfid_tag" name="rfid_tag" 
+                       value="{{ device.rfid_tag|default:'' }}">
+                <small style="color: #666;">有值则必须唯一</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="inventory_external_id">盘点系统ID</label>
+                <input type="text" id="inventory_external_id" name="inventory_external_id" 
+                       value="{{ device.inventory_external_id|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="rfid_enrolled_at">RFID纳入时间</label>
+                <input type="datetime-local" id="rfid_enrolled_at" name="rfid_enrolled_at" 
+                       value="{{ device.rfid_enrolled_at|date:'Y-m-d\TH:i'|default:'' }}">
+            </div>
+        </div>
+        
+        <!-- 第三列：运行状态 -->
+        <div>
+            <h3>运行状态</h3>
+            
+            <div class="form-group">
+                <label for="operational_state">运行状态 *</label>
+                <select id="operational_state" name="operational_state" required>
+                    {% for value, label in operational_state_choices %}
+                    {% if device and device.operational_state == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div id="state-description" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                {% if device and not device.can_be_transferred %}
+                <span style="color: #dc3545;">⚠️ 当前状态不可调拨</span>
+                {% else %}
+                <span style="color: #28a745;">✓ 当前状态可调拨</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 第四列：位置信息 -->
+        <div>
+            <h3>位置信息</h3>
+            
+            <div class="form-group">
+                <label for="location_type">位置类型</label>
+                <select id="location_type" name="location_type" onchange="toggleLineField()">
+                    {% for value, label in location_type_choices %}
+                    {% if device and device.location_type == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            {% if device and device.location_type == 'LINE' %}
+            <div class="form-group" id="line-field" style="display: block;">
+            {% else %}
+            <div class="form-group" id="line-field" style="display: none;">
+            {% endif %}
+                <label for="line">所在线体</label>
+                <select id="line" name="line">
+                    <option value="">请选择线体</option>
+                    {% for line_obj in lines %}
+                    {% if device and device.line and device.line.id == line_obj.id %}
+                    <option value="{{ line_obj.id }}" selected>
+                        {{ line_obj.line_name }}（{{ line_obj.factory_area.name }}
+                        {% if line_obj.floor %}{{ line_obj.floor.name }}{% endif %}）
+                    </option>
+                    {% else %}
+                    <option value="{{ line_obj.id }}">
+                        {{ line_obj.line_name }}（{{ line_obj.factory_area.name }}
+                        {% if line_obj.floor %}{{ line_obj.floor.name }}{% endif %}）
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="location_text">位置描述</label>
+                <input type="text" id="location_text" name="location_text" 
+                       value="{{ device.location_text|default:'' }}">
+                <small style="color: #666;">非线体位置，如仓库/维修间/库位</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="area">区域/工位</label>
+                <input type="text" id="area" name="area" 
+                       value="{{ device.area|default:'' }}">
+                <small style="color: #666;">线上设备：例CC10、CC11等；非线上设备：例仓库、维修间等</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group checkbox">
+        {% if not device or device.is_active %}
+        <input type="checkbox" id="is_active" name="is_active" checked>
+        {% else %}
+        <input type="checkbox" id="is_active" name="is_active">
+        {% endif %}
+        <label for="is_active">启用</label>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url 'factory_area:device_list' %}" class="btn">取消</a>
+    </div>
+</form>
+
+<script>
+function toggleLineField() {
+    const locationType = document.getElementById('location_type').value;
+    const lineField = document.getElementById('line-field');
+    
+    if (locationType === 'LINE') {
+        lineField.style.display = 'block';
+    } else {
+        lineField.style.display = 'none';
+        document.getElementById('line').value = '';
+    }
+}
+
+// 初始化页面时执行一次
+toggleLineField();
+
+// 运行状态变化时更新描述
+document.getElementById('operational_state').addEventListener('change', function() {
+    const nonTransferable = [
+        'IN_MAINTENANCE', 
+        'WAITING_FOR_REPAIR', 
+        'QUARANTINED', 
+        'PENDING_DISPOSAL', 
+        'OUT_OF_SERVICE'
+    ];
+    
+    const descDiv = document.getElementById('state-description');
+    if (nonTransferable.includes(this.value)) {
+        descDiv.innerHTML = '<span style="color: #dc3545;">⚠️ 当前状态不可调拨</span>';
+    } else {
+        descDiv.innerHTML = '<span style="color: #28a745;">✓ 当前状态可调拨</span>';
+    }
+});
+</script>
+
+<style>
+.form-group {
+    margin: 10px 0;
+}
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+.checkbox {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+.checkbox input {
+    margin-right: 8px;
+}
+select, input[type="text"], input[type="datetime-local"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+small {
+    display: block;
+    margin-top: 4px;
+}
+</style>
+{% endblock %}

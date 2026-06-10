@@ -1,0 +1,164 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}设备实例列表{% endblock %}
+
+{% block content %}
+<h2>设备实例列表</h2>
+
+<!-- 筛选表单 -->
+<div style="background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px;">
+    <form method="get" class="filter-form">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+            <div>
+                <label>设备类别:</label>
+                <select name="equipment_type" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for eq_type in equipment_types %}
+                    {% if request.GET.equipment_type and request.GET.equipment_type == eq_type.id|stringformat:"s" %}
+                    <option value="{{ eq_type.id }}" selected>{{ eq_type.get_category_display_name }}</option>
+                    {% else %}
+                    <option value="{{ eq_type.id }}">{{ eq_type.get_category_display_name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>运行状态:</label>
+                <select name="operational_state" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for value, label in operational_state_choices %}
+                    {% if request.GET.operational_state == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>位置类型:</label>
+                <select name="location_type" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for value, label in location_type_choices %}
+                    {% if request.GET.location_type == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>归属部门:</label>
+                <select name="department_name" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for dept in departments %}
+                    {% if dept %}
+                    {% if request.GET.department_name == dept %}
+                    <option value="{{ dept }}" selected>{{ dept }}</option>
+                    {% else %}
+                    <option value="{{ dept }}">{{ dept }}</option>
+                    {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>搜索:</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" placeholder="PPID/设备名/RFID/资产编号">
+                <button type="submit" class="btn">搜索</button>
+                <a href="{% url 'factory_area:device_list' %}" class="btn">重置</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="margin: 20px 0;">
+    <a href="{% url 'factory_area:device_add' %}" class="btn btn-success">新增设备</a>
+    <span style="margin-left: 20px;">
+        <strong>统计:</strong> 共 {{ devices.count }} 台设备
+        {% if request.GET.operational_state == 'IDLE' or request.GET.operational_state == 'SPARE' %}
+        | <span style="color: green;">可调拨设备: {{ devices.count }}</span>
+        {% endif %}
+    </span>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>PPID</th>
+            <th>设备名称</th>
+            <th>设备类别</th>
+            <th>运行状态</th>
+            <th>归属部门</th>
+            <th>保管人</th>
+            <th>RFID标签</th>
+            <th>固定资产</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+        <tr>
+            <td>{{ device.ppid }}</td>
+            <td>{{ device.get_device_display_name }}</td>
+            <td>{{ device.equipment_type.get_category_display_name }}</td>
+            <td>
+                {% if device.operational_state == 'IDLE' %}
+                <span
+                    style="padding: 3px 8px; border-radius: 3px; font-size: 12px; background: #d4edda; color: #155724;">
+                    {% elif device.operational_state == 'IN_USE' %}
+                    <span
+                        style="padding: 3px 8px; border-radius: 3px; font-size: 12px; background: #d1ecf1; color: #0c5460;">
+                        {% elif device.operational_state == 'SPARE' %}
+                        <span
+                            style="padding: 3px 8px; border-radius: 3px; font-size: 12px; background: #fff3cd; color: #856404;">
+                            {% elif device.operational_state == 'IN_MAINTENANCE' %}
+                            <span
+                                style="padding: 3px 8px; border-radius: 3px; font-size: 12px; background: #f8d7da; color: #721c24;">
+                                {% else %}
+                                <span
+                                    style="padding: 3px 8px; border-radius: 3px; font-size: 12px; background: #e2e3e5; color: #383d41;">
+                                    {% endif %}
+                                    {{ device.get_operational_state_display_name }}
+                                </span>
+            </td>
+            <td>{{ device.department_name|default:"-" }}</td>
+            <td>{{ device.keeper|default:"-" }}</td>
+            <td>{{ device.rfid_tag|default:"-" }}</td>
+            <td>{{ device.asset_tag|default:"-" }}</td>
+            <td>{% if device.is_active %}启用{% else %}禁用{% endif %}</td>
+            <td>
+                <a href="{% url 'factory_area:device_detail' device.pk %}" class="btn btn-sm">详情</a>
+                <a href="{% url 'factory_area:device_edit' device.pk %}" class="btn btn-sm">编辑</a>
+                {% if device.is_active %}
+                <a href="{% url 'factory_area:device_disable' device.pk %}" class="btn btn-sm btn-warning"
+                    onclick="return confirm('确定要禁用 {{ device.get_device_display_name }} 吗？')">禁用</a>
+                {% else %}
+                <a href="{% url 'factory_area:device_enable' device.pk %}" class="btn btn-sm btn-success"
+                    onclick="return confirm('确定要启用 {{ device.get_device_display_name }} 吗？')">启用</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="10" style="text-align: center;">暂无设备数据</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 快速筛选按钮 -->
+<div style="margin-top: 20px;">
+    <strong>快速筛选:</strong>
+    <a href="?operational_state=IDLE" class="btn btn-sm" style="background: #d4edda;">闲置可用</a>
+    <a href="?operational_state=SPARE" class="btn btn-sm" style="background: #fff3cd;">备品设备</a>
+    <a href="?operational_state=IN_USE" class="btn btn-sm" style="background: #d1ecf1;">使用中</a>
+    <a href="?operational_state=IN_MAINTENANCE" class="btn btn-sm" style="background: #f8d7da;">维修中</a>
+    <a href="{% url 'factory_area:device_list' %}" class="btn btn-sm">全部设备</a>
+</div>
+{% endblock %}

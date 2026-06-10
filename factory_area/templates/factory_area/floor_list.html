@@ -1,0 +1,47 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}楼层列表{% endblock %}
+
+{% block content %}
+<h2>楼层列表</h2>
+
+<div style="margin: 20px 0;">
+    <a href="{% url 'factory_area:floor_add' %}" class="btn btn-success">新增楼层</a>
+    <a href="{% url 'factory_area:list' %}" class="btn">厂区管理</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>楼层编码</th>
+            <th>楼层名称</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for floor in floors %}
+        <tr>
+            <td>{{ floor.floor_code }}</td>
+            <td>{{ floor.name }}</td>
+            <td>{% if floor.is_active %}启用{% else %}禁用{% endif %}</td>
+            <td>{{ floor.created_at|date:"Y-m-d H:i" }}</td>
+            <td>
+                <a href="{% url 'factory_area:floor_edit' floor.pk %}" class="btn">编辑</a>
+                {% if floor.is_active %}
+                    <a href="{% url 'factory_area:floor_disable' floor.pk %}" class="btn btn-warning" 
+                       onclick="return confirm('确定要禁用 {{ floor.name }} 吗？')">禁用</a>
+                {% else %}
+                    <a href="{% url 'factory_area:floor_enable' floor.pk %}" class="btn btn-success" 
+                       onclick="return confirm('确定要启用 {{ floor.name }} 吗？')">启用</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center;">暂无楼层数据</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

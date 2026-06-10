@@ -1,0 +1,64 @@
+{% extends 'factory_area/base.html' %}
+
+{% block title %}批量创建纳管配置{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">批量创建纳管配置</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="equipment_type_id" class="form-label">选择设备类型</label>
+                            <select name="equipment_type_id" id="equipment_type_id" class="form-select" required>
+                                <option value="">请选择设备类型...</option>
+                                {% for et in equipment_types %}
+                                <option value="{{ et.id }}">
+                                    {{ et.equipment_type_id }} - {{ et.name }}
+                                    {% if et.maintenance_required or et.calibration_required %}
+                                    (需要{% if et.maintenance_required %}保养{% endif %}{% if et.calibration_required %}{% if et.maintenance_required %}、{% endif %}校正{% endif %})
+                                    {% else %}
+                                    (无需维保)
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                将为该设备类型下所有尚未创建纳管配置的设备自动创建配置
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">批量创建规则</h6>
+                                    <ul class="mb-0">
+                                        <li>自动为该类型下没有纳管配置的设备创建配置</li>
+                                        <li>默认使用类型默认值（use_type_defaults=true）</li>
+                                        <li>默认纳入维保体系（enable_maintenance=true）</li>
+                                        <li>已创建配置的设备不会被重复创建</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> 批量创建
+                            </button>
+                            <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> 取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

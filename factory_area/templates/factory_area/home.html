@@ -1,0 +1,161 @@
+{% extends 'factory_area/base.html' %}
+
+{% block title %}首页 - 设备维保系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center mb-4">设备维保管理系统</h1>
+            <p class="text-center text-muted">欢迎使用设备维保管理系统</p>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">厂区数量</h5>
+                    <h2 class="display-4">{{ stats.factory_areas_count }}</h2>
+                    <a href="{% url 'factory_area:list' %}" class="btn btn-sm btn-primary mt-2">管理厂区</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-info">线体数量</h5>
+                    <h2 class="display-4">{{ stats.lines_count }}</h2>
+                    <a href="{% url 'factory_area:line_list' %}" class="btn btn-sm btn-info mt-2">管理线体</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">设备类型</h5>
+                    <h2 class="display-4">{{ stats.equipment_types_count }}</h2>
+                    <a href="{% url 'factory_area:equipment_type_list' %}" class="btn btn-sm btn-success mt-2">管理类型</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">设备总数</h5>
+                    <h2 class="display-4">{{ stats.devices_count }}</h2>
+                    <a href="{% url 'factory_area:device_list' %}" class="btn btn-sm btn-warning mt-2">管理设备</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 维保统计 -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">纳管配置总数</h5>
+                    <h2 class="display-4">{{ stats.profiles_count }}</h2>
+                    <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-sm btn-primary mt-2">管理纳管</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">已纳管设备</h5>
+                    <h2 class="display-4">{{ stats.enabled_profiles_count }}</h2>
+                    <p class="text-muted">纳入维保体系的设备</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-secondary">未纳管设备</h5>
+                    <h2 class="display-4">{{ stats.disabled_profiles_count }}</h2>
+                    <p class="text-muted">未纳入维保体系的设备</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能模块入口 -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">功能模块</h3>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">厂区管理</h5>
+                    <p class="card-text text-muted">管理厂区信息</p>
+                    <a href="{% url 'factory_area:list' %}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">楼层管理</h5>
+                    <p class="card-text text-muted">管理楼层信息</p>
+                    <a href="{% url 'factory_area:floor_list' %}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">线体管理</h5>
+                    <p class="card-text text-muted">管理线体信息</p>
+                    <a href="{% url 'factory_area:line_list' %}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">设备类型</h5>
+                    <p class="card-text text-muted">管理设备类型和维保规则</p>
+                    <a href="{% url 'factory_area:equipment_type_list' %}" class="btn btn-success">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">设备实例</h5>
+                    <p class="card-text text-muted">管理设备实例台账</p>
+                    <a href="{% url 'factory_area:device_list' %}" class="btn btn-warning">进入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">纳管配置</h5>
+                    <p class="card-text text-muted">管理设备纳管和维保配置</p>
+                    <a href="{% url 'factory_area:maintenance_profile_list' %}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">系统管理</h5>
+                    <p class="card-text text-muted">Admin后台管理</p>
+                    <a href="/admin/" class="btn btn-dark">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

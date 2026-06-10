@@ -1,0 +1,101 @@
+{% extends 'factory_area/base.html' %}
+{% block title %}设备类型列表{% endblock %}
+
+{% block content %}
+<h2>设备类型列表</h2>
+
+<!-- 筛选表单 -->
+<div style="background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px;">
+    <form method="get" class="filter-form">
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <label>设备类别:</label>
+                <select name="device_category" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for value, label in device_category_choices %}
+                    {% if request.GET.device_category == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>送校方式:</label>
+                <select name="calibration_method" onchange="this.form.submit()">
+                    <option value="">全部</option>
+                    {% for value, label in calibration_method_choices %}
+                    {% if request.GET.calibration_method == value %}
+                    <option value="{{ value }}" selected>{{ label }}</option>
+                    {% else %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>搜索:</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" placeholder="ID/名称/品牌/型号">
+                <button type="submit" class="btn">搜索</button>
+            </div>
+
+            <div style="margin-left: auto;">
+                <a href="{% url 'factory_area:equipment_type_add' %}" class="btn btn-success">新增设备类型</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>类型ID</th>
+            <th>设备名称</th>
+            <th>设备类别</th>
+            <th>品牌</th>
+            <th>型号</th>
+            <th>送校方式</th>
+            <th>预估单价</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for eq_type in equipment_types %}
+        <tr>
+            <td>{{ eq_type.equipment_type_id }}</td>
+            <td>{{ eq_type.name }}</td>
+            <td>{{ eq_type.get_category_display_name }}</td>
+            <td>{{ eq_type.brand|default:"-" }}</td>
+            <td>{{ eq_type.model|default:"-" }}</td>
+            <td>{{ eq_type.get_calibration_method_display_name }}</td>
+            <td>
+                {% if eq_type.estimated_unit_cost %}
+                {{ eq_type.estimated_unit_cost }} {{ eq_type.currency }}
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td>{% if eq_type.is_active %}启用{% else %}禁用{% endif %}</td>
+            <td>
+                <a href="{% url 'factory_area:equipment_type_edit' eq_type.pk %}" class="btn">编辑</a>
+                {% if eq_type.is_active %}
+                <a href="{% url 'factory_area:equipment_type_disable' eq_type.pk %}" class="btn btn-warning"
+                    onclick="return confirm('确定要禁用 {{ eq_type.name }} 吗？')">禁用</a>
+                {% else %}
+                <a href="{% url 'factory_area:equipment_type_enable' eq_type.pk %}" class="btn btn-success"
+                    onclick="return confirm('确定要启用 {{ eq_type.name }} 吗？')">启用</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" style="text-align: center;">暂无设备类型数据</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
